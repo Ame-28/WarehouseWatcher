@@ -19,7 +19,7 @@ class thermostat:
         self.sensor_id=str(uuid.uuid4)
         self.battery=100 #getting started with full battery
         self.base_voltage=4 # its maximum voltage
-        self.base_signal_Strength=100 # strong signal
+        self.base_signal_strength=100           
         self.battery_drain_cycle=battery_drain_cycle # its basically gives the number of cycles until battery drains completely
         self.drain_per_cycle=100/battery_drain_cycle
         self.min_voltage=2.5
@@ -38,10 +38,11 @@ class thermostat:
     # Description:This function is used to simulate and  update the battey drain and life
     # Parameter:void:self
     # return:int number:battery.
+    
 
     def battery_updates(self):
         if self.battery>0:
-           self.base_signal_Strength=max(0,self.base_battery-random.uniform(0.001,0.1))
+           self.base_signal_Strength=max(0,self.battery-random.uniform(0.001,0.1))
         return round(self.battery,2)
     
     # function name:update_voltage(self)
@@ -52,7 +53,7 @@ class thermostat:
     def update_voltage(self):
         if self.battery <=0:
             return 0
-        self.base_voltage=max(2.5,3.0+(self.base_battery/100*0.3))
+        self.base_voltage=max(2.5,3.0+(self.battery/100*0.3))
         return round(self.base_voltage,2)
     
     # function name:generate_signal_strength(self)
@@ -60,10 +61,12 @@ class thermostat:
     # Parameter:void:self
     # return:int number:base_segnal_strength
     def generate_signal_strength(self):
-        if self.base_battery<=0:
-            return 0
-        self.base_signal_Strength=max(50,random.randint(60,self.base_signal_Strength))
-        return self.base_signal_Strength
+       
+        if self.battery <= 0:
+            return 0  # No signal when battery is dead
+        # Use `int` instead of `float` for `random.randint`
+        self.base_signal_strength = max(50, random.randint(60, int(self.base_signal_strength)))
+        return self.base_signal_strength
     
     # function name:state(self)
     # Description:This function is used to set or provide the state of  the sensor
@@ -89,7 +92,7 @@ class thermostat:
 
         temperature = self.temperataure_generater()
         signal_strength = self.generate_signal_strength()
-        state = self.determine_state()
+        state = self.state()
         met_requirements = temperature <= self.temp_range[1] and temperature >= self.temp_range[0]
 
         data_packets={
