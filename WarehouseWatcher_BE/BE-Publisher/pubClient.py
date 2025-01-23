@@ -8,6 +8,7 @@ import time
 import random
 from paho.mqtt.enums import CallbackAPIVersion
 import configparser
+from Sensors.thermostat import thermostat
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -16,9 +17,25 @@ user = config.get('DEFAULT', 'UserName')
 password = config.get('DEFAULT', 'Password')
 host = config.get('DEFAULT', 'Host')
 
+Topic_publish={
+    "Room":"Room:Waterloo/Warehouse/Thermostat1/temperature"
+}
+
+thermostats = {
+    "Room": thermostat("Room", (16.0, 25.0), battery_drain_cycle=100),  # Drains in 100 cycles
+    
+}
+try:
+    while True:
+        print(thermostat("Room", (16.0, 25.0), battery_drain_cycle=100))
+        time.sleep(3)
+except KeyboardInterrupt:
+    print("Stopped by user")
 # Publish, print the message on the console
 def on_publish(client, userdata, mid, reason_code, properties):
     print(f"Message published. MID: {mid}, Reason Code: {reason_code}")
+
+
 client = paho.Client(callback_api_version= CallbackAPIVersion.VERSION2, client_id="", clean_session=True)
 
 # Enable TLS/SSL
