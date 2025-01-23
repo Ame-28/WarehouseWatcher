@@ -17,7 +17,7 @@ user = config.get('DEFAULT', 'UserName')
 password = config.get('DEFAULT', 'Password')
 host = config.get('DEFAULT', 'Host')
 
-Topic_publish={
+TOPICS={
     "Room":"Room:Waterloo/Warehouse/Thermostat1/temperature"
 }
 
@@ -46,11 +46,20 @@ client.on_publish = on_publish
 client.connect(host, 8883)
 client.loop_start()
 
+def publish_sensorData(client):
+    for sensor,topic in list(TOPICS.item()):
+        load=thermostat[sensor].generate_sensor_data()
+        if load is None:
+            print(f"{sensor} sensor battery is dead.Stopping")
+            del TOPICS[sensor]
+            continue
+        (rc,mid)=client.publish(TOPICS,load,qos=1)
+        print(f"Publishing: {topic}:{load}(mid :{mid}, rc:{rc})")
 try:
     while True:
         temperature = round(random.uniform(24, 30), 1)
         (rc, mid) = client.publish('Kitchener/Office1/Thermostat1/temperature', str(temperature), qos=1)
-        print(f"Publishing: {temperature} with mid: {mid} (rc: {rc})")  # Added print statement
+       
         time.sleep(3)
 except KeyboardInterrupt:
     print("Exiting...")
