@@ -66,7 +66,7 @@ class thermostat:
         return self.base_signal_Strength
     
     # function name:state(self)
-    # Description:This function is used to set or provide the state of the 
+    # Description:This function is used to set or provide the state of  the sensor
     # Parameter:void:self
     # return:int number:base_segnal_strength
     def state(self):
@@ -74,6 +74,48 @@ class thermostat:
             return 4
         probabilities=[1,2,3]
         return random.choices([1,2,3],probabilities)[0]
+    
+
+
+    def generate_sensor_data(self):
+    
+        battery = self.battery_updates()
+
+        voltage = self.update_voltage()
+
+        if voltage < self.min_voltage:
+            print(f"{self.sensor_name} has shut down due to low voltage.")
+            return None  
+
+        temperature = self.temperataure_generater()
+        signal_strength = self.generate_signal_strength()
+        state = self.determine_state()
+        met_requirements = temperature <= self.temp_range[1] and temperature >= self.temp_range[0]
+
+        data_packets={
+            "Method": "SensorMessage",
+            "Result": [
+                {
+                    "DataMessageGUID": str(uuid.uuid4()),
+                    "SensorID": self.sensor_id,
+                    "MessageDate": f"/Date({int(time.time() * 1000)})/",
+                    "State": state,
+                    "SignalStrength": signal_strength,
+                    "Voltage": voltage,
+                    "Battery": battery,
+                    "Data": str(temperature),
+                    "DisplayData": f"{temperature}\u00b0 C",
+                    "PlotValue": str(temperature),
+                    "MetNotificationRequirements": met_requirements,
+                    "GatewayID": random.randint(100000, 999999),
+                    "DataValues": str(temperature),
+                    "DataTypes": "TemperatureData",
+                    "PlotValues": str(temperature),
+                    "PlotLabels": "Celsius",
+                }
+            ]
+        }
+        return json.dumps(data_packets)
     
    
 
