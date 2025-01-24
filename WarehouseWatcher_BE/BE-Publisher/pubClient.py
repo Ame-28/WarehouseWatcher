@@ -11,9 +11,11 @@ import configparser
 from Sensors.thermostat import thermostat
 import json
 from dotenv import load_dotenv
-load_dotenv()
+
 import os
  
+
+load_dotenv() # used for setting up the environment variable for the project
 # print(os.getenv("PATH"))
 # config = configparser.ConfigParser(interpolation=None)
 # config.read('config.ini')
@@ -53,18 +55,23 @@ TOPICS={
     
 }
 
-thermostats = {
+sensors= {
      "Room": thermostat("Room", (20.0, 25.0), battery_drain_cycle=100),
-    # "Refrigerator": thermostat("Refrigerator", (2.0, 5.0), battery_drain_cycle=150),
-    # "Freezer": thermostat("Freezer", (-18.0, -15.0), battery_drain_cycle=200),
+     "Refrigerator": thermostat("Refrigerator", (2.0, 5.0), battery_drain_cycle=150),
+     "Freezer": thermostat("Freezer", (-18.0, -15.0), battery_drain_cycle=200),
 }
 
-# Publish, print the message on the console
+
+
 def on_publish(client, userdata, mid, reason_code, properties):
     print(f"Message published. MID: {mid}, Reason Code: {reason_code}")
 
-
+# function name:publish_sensorData(client)
+# Description:This function  is used to publish all the sensor data as based on the topic and the key mapping 
+# Parameter:void:self
+# return:none
 def publish_sensorData(client):
+
     key_mapping = {
         "data_message_guid":"MessageID",
         "sensor_id": "SensorID",
@@ -87,8 +94,8 @@ def publish_sensorData(client):
         
     }
 
-    for sensor_name, thermostat_instance in thermostats.items():
-        data = thermostat_instance.generate_sensor_data()
+    for sensor_name, sensor_instance in sensors.items():
+        data =  sensor_instance.generate_sensor_data()
         if data is None:
             print(f"{sensor_name} has shut down.")
             continue
@@ -106,11 +113,15 @@ def publish_sensorData(client):
                 print(f"Published to {topic}: {payload}")
 
 
+# function name:publish_all_sensorData(client)
+# Description:This function  is used to publish all the sensor data(maybe in  the future if we add motion sensor then it will include that too)
+# Parameter:void:self
+# return:none
 def publish_all_sensorData(client):
    
    allsensor_data=[]
    
-   for sensor_name,thermostat_instance in thermostats.items():
+   for sensor_name,thermostat_instance in sensors.items():
       data=thermostat_instance.generate_sensor_data()
       if data is None:
          print(f"{sensor_name} has shut down")
@@ -141,8 +152,8 @@ if __name__ == "__main__":
     client.connect(host, 8883)
     client.loop_start()
     try:
-        for i in range(1,3):
-        # while TOPICS:
+        #for i in range(1,3): # test code
+        while TOPICS:
             publish_sensorData(client)
             if "allsensor_data" in TOPICS:
                publish_all_sensorData(client)

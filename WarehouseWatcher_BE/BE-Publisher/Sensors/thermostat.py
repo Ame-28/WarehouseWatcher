@@ -2,7 +2,7 @@
 # PROJECT :Wharehouse Watcher
 # PROGRAMMER : Amel korandippillil Sunil
 # FIRST VERSION : 
-# DESCRIPTION :This basically conisist of a class which simulates a temperature sensor.
+# DESCRIPTION :This basically conisist of a class which simulates a temperature sensor(Thermostat)
 
 
 import random
@@ -80,7 +80,10 @@ class thermostat:
         return random.choices([1,2,3],probabilities)[0]
     
 
-
+    # function name:generate_sensor_data(self)
+    # Description:This function is used to set the data packets to send
+    # Parameter:void:self
+    # return:int json packet
     def generate_sensor_data(self):
     
         battery = self.battery_updates()
