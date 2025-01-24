@@ -10,14 +10,21 @@ from paho.mqtt.enums import CallbackAPIVersion
 import configparser
 from Sensors.thermostat import thermostat
 import json
+from dotenv import load_dotenv
+load_dotenv()
+import os
+ 
+# print(os.getenv("PATH"))
+# config = configparser.ConfigParser(interpolation=None)
+# config.read('config.ini')
+ 
+# user = config.get('DEFAULT', 'UserName')
+# password = config.get('DEFAULT', 'Password')
+# host = config.get('DEFAULT', 'Host')
 
-
-config = configparser.ConfigParser(interpolation=None)
-config.read('config.ini')
-
-user = config.get('DEFAULT', 'UserName')
-password = config.get('DEFAULT', 'Password')
-host = config.get('DEFAULT', 'Host')
+user =os.getenv("user")
+password = os.getenv("password")
+host = os.getenv("host")
 
 TOPICS={
     "temperature": "Waterloo/Warehouse/{sensor_name}/temperature",
