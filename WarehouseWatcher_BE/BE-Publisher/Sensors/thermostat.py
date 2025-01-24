@@ -9,6 +9,7 @@ import random
 import uuid
 import time
 import json
+import datetime
 
 
 
@@ -99,9 +100,9 @@ class thermostat:
             "Method": "SensorMessage",
             "Result": [
                 {
-                    "DataMessageGUID": str(uuid.uuid4()),
+                    "MessageID": str(uuid.uuid4()),
                     "SensorID": self.sensor_id,
-                    "MessageDate": f"/Date({int(time.time() * 1000)})/",
+                    "MessageDate": datetime.datetime.now().isoformat(),
                     "State": state,
                     "SignalStrength": signal_strength,
                     "Voltage": voltage,

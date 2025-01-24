@@ -11,6 +11,7 @@ import configparser
 from Sensors.thermostat import thermostat
 import json
 
+
 config = configparser.ConfigParser(interpolation=None)
 config.read('config.ini')
 
@@ -23,13 +24,32 @@ TOPICS={
     "voltage": "Waterloo/Warehouse/{sensor_name}/voltage",
     "battery": "Waterloo/Warehouse/{sensor_name}/battery",
     "signal_strength": "Waterloo/Warehouse/{sensor_name}/signal_strength",
-    # "everydata":"Waterloo/Warehouse/{sensor_name}"
+    "data_message_guid": "Waterloo/Warehouse/{sensor_name}/MessageID",
+    "sensor_id":"Waterloo/Warehouse/{sensor_name}/sensor_id",
+    "message_date": "Waterloo/Warehouse/{sensor_name}/message_date",
+    "state": "Waterloo/Warehouse/{sensor_name}/state",
+    "signal_strength": "Waterloo/Warehouse/{sensor_name}/signal_strength",
+    "voltage": "Waterloo/Warehouse/{sensor_name}/voltage",
+    "battery": "Waterloo/Warehouse/{sensor_name}/battery",
+    "temperature": "Waterloo/Warehouse/{sensor_name}/temperature",
+    "display_temperature": "Waterloo/Warehouse/{sensor_name}/display_temperature",
+    "plot_temperature": "Waterloo/Warehouse/{sensor_name}/plot_temperature",
+    "met_notification_requirements": "Waterloo/Warehouse/{sensor_name}/met_notification_requirements",
+    "gateway_id": "Waterloo/Warehouse/{sensor_name}/gateway_id",
+    "data_values": "Waterloo/Warehouse/{sensor_name}/data_values",
+    "data_types": "Waterloo/Warehouse/{sensor_name}/data_types",
+    "plot_values": "Waterloo/Warehouse/{sensor_name}/plot_values",
+    "plot_labels": "Waterloo/Warehouse/{sensor_name}/plot_labels",
+    "allsensor_data": "Waterloo/Warehouse/allsensor_data" ,
+   
+
+    
 }
 
 thermostats = {
      "Room": thermostat("Room", (20.0, 25.0), battery_drain_cycle=100),
-    "Refrigerator": thermostat("Refrigerator", (2.0, 5.0), battery_drain_cycle=150),
-    "Freezer": thermostat("Freezer", (-18.0, -15.0), battery_drain_cycle=200),
+    # "Refrigerator": thermostat("Refrigerator", (2.0, 5.0), battery_drain_cycle=150),
+    # "Freezer": thermostat("Freezer", (-18.0, -15.0), battery_drain_cycle=200),
 }
 
 # Publish, print the message on the console
@@ -39,11 +59,25 @@ def on_publish(client, userdata, mid, reason_code, properties):
 
 def publish_sensorData(client):
     key_mapping = {
-        "temperature": "Data",
+        "data_message_guid":"MessageID",
+        "sensor_id": "SensorID",
+        "message_date": "MessageDate",
+        "state": "State",
+        "signal_strength": "SignalStrength",
         "voltage": "Voltage",
         "battery": "Battery",
-        "signal_strength": "SignalStrength",
-        # "everydata":"Result"
+        "temperature": "Data",
+        "display_temperature": "DisplayData",
+        "plot_temperature": "PlotValue",
+        "met_notification_requirements": "MetNotificationRequirements",
+        "gateway_id": "GatewayID",
+        "data_values": "DataValues",
+        "data_types": "DataTypes",
+        "plot_values": "PlotValues",
+        "plot_labels": "PlotLabels",
+       
+
+        
     }
 
     for sensor_name, thermostat_instance in thermostats.items():
@@ -54,11 +88,41 @@ def publish_sensorData(client):
 
         result = json.loads(data)["Result"][0]
         for key, topic_template in TOPICS.items():
+            if key not in key_mapping:
+               continue
             topic = topic_template.format(sensor_name=sensor_name)
             mapped_key = key_mapping[key] 
-            payload = result[mapped_key]
-            client.publish(topic, payload, qos=1)
-            print(f"Published to {topic}: {payload}")
+            # payload = result[mapped_key]
+            payload = result.get(mapped_key)
+            if payload is not None:
+                client.publish(topic, payload, qos=1)
+                print(f"Published to {topic}: {payload}")
+
+
+def publish_all_sensorData(client):
+   
+   allsensor_data=[]
+   
+   for sensor_name,thermostat_instance in thermostats.items():
+      data=thermostat_instance.generate_sensor_data()
+      if data is None:
+         print(f"{sensor_name} has shut down")
+         continue
+      # we are parsing through the sensor data and appending it to the list
+      final_result=json.loads(data)["Result"][0]
+      sensor_Data={
+         "sensor_name":sensor_name,
+         "data":final_result
+      }
+      allsensor_data.append(sensor_Data)
+      print(allsensor_data)
+      topics=TOPICS["allsensor_data"]
+      payload=json.dumps(allsensor_data)
+      client.publish(topics,payload,qos=1)
+      print(f"Published all sensor data to {topics}:{payload}")
+
+
+
 
 
 if __name__ == "__main__":
@@ -70,8 +134,11 @@ if __name__ == "__main__":
     client.connect(host, 8883)
     client.loop_start()
     try:
-        while TOPICS:
+        for i in range(1,3):
+        # while TOPICS:
             publish_sensorData(client)
+            if "allsensor_data" in TOPICS:
+               publish_all_sensorData(client)
             time.sleep(3)
     except KeyboardInterrupt:
      print("Exiting...")
