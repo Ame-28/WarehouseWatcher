@@ -2,8 +2,15 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+<<<<<<< HEAD
 # C extensions
 *.so
+=======
+
+# C extensions
+*.so
+
+>>>>>>> a7b58dc5e147b814b1527983bf65af1c8358badc
 # Distribution / packaging
 bin/
 build/
@@ -18,25 +25,51 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+<<<<<<< HEAD
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+=======
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+>>>>>>> a7b58dc5e147b814b1527983bf65af1c8358badc
 # Unit test / coverage reports
 .tox/
 .coverage
 .cache
 nosetests.xml
 coverage.xml
+<<<<<<< HEAD
 # Translations
 *.mo
+=======
+
+# Translations
+*.mo
+
+>>>>>>> a7b58dc5e147b814b1527983bf65af1c8358badc
 # Mr Developer
 .mr.developer.cfg
 .project
 .pydevproject
+<<<<<<< HEAD
 # Rope
 .ropeproject
 # Django stuff:
 *.log
 *.pot
+=======
+
+# Rope
+.ropeproject
+
+# Django stuff:
+*.log
+*.pot
+
+>>>>>>> a7b58dc5e147b814b1527983bf65af1c8358badc
 # Sphinx documentation
 docs/_build/
