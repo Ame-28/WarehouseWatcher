@@ -1,7 +1,13 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import AppBar from './components/AppBar.vue';
-import HelloWorld from './components/HelloWorld.vue'
+import { onMounted } from 'vue'
+import { subscribeMQTT } from'./helper/subscriber';
+
+onMounted(() => {
+  subscribeMQTT()
+})
+
 </script>
 
 <template>
