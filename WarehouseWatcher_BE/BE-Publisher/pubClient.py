@@ -29,27 +29,29 @@ password = os.getenv("password")
 host = os.getenv("host")
 
 TOPICS={
-    "temperature": "Waterloo/Warehouse/{sensor_name}/temperature",
-    "voltage": "Waterloo/Warehouse/{sensor_name}/voltage",
-    "battery": "Waterloo/Warehouse/{sensor_name}/battery",
-    "signal_strength": "Waterloo/Warehouse/{sensor_name}/signal_strength",
-    "data_message_guid": "Waterloo/Warehouse/{sensor_name}/MessageID",
-    "sensor_id":"Waterloo/Warehouse/{sensor_name}/sensor_id",
-    "message_date": "Waterloo/Warehouse/{sensor_name}/message_date",
-    "state": "Waterloo/Warehouse/{sensor_name}/state",
-    "signal_strength": "Waterloo/Warehouse/{sensor_name}/signal_strength",
-    "voltage": "Waterloo/Warehouse/{sensor_name}/voltage",
-    "battery": "Waterloo/Warehouse/{sensor_name}/battery",
-    "temperature": "Waterloo/Warehouse/{sensor_name}/temperature",
-    "display_temperature": "Waterloo/Warehouse/{sensor_name}/display_temperature",
-    "plot_temperature": "Waterloo/Warehouse/{sensor_name}/plot_temperature",
-    "met_notification_requirements": "Waterloo/Warehouse/{sensor_name}/met_notification_requirements",
-    "gateway_id": "Waterloo/Warehouse/{sensor_name}/gateway_id",
-    "data_values": "Waterloo/Warehouse/{sensor_name}/data_values",
-    "data_types": "Waterloo/Warehouse/{sensor_name}/data_types",
-    "plot_values": "Waterloo/Warehouse/{sensor_name}/plot_values",
-    "plot_labels": "Waterloo/Warehouse/{sensor_name}/plot_labels",
-    "allsensor_data": "Waterloo/Warehouse/allsensor_data" ,
+    # "temperature": "Waterloo/Warehouse/{sensor_name}/temperature",
+    # "voltage": "Waterloo/Warehouse/{sensor_name}/voltage",
+    # "battery": "Waterloo/Warehouse/{sensor_name}/battery",
+    # "signal_strength": "Waterloo/Warehouse/{sensor_name}/signal_strength",
+    # "data_message_guid": "Waterloo/Warehouse/{sensor_name}/MessageID",
+    # "sensor_id":"Waterloo/Warehouse/{sensor_name}/sensor_id",
+    # "message_date": "Waterloo/Warehouse/{sensor_name}/message_date",
+    # "state": "Waterloo/Warehouse/{sensor_name}/state",
+    # "signal_strength": "Waterloo/Warehouse/{sensor_name}/signal_strength",
+    # "voltage": "Waterloo/Warehouse/{sensor_name}/voltage",
+    # "battery": "Waterloo/Warehouse/{sensor_name}/battery",
+    # "temperature": "Waterloo/Warehouse/{sensor_name}/temperature",
+    # "display_temperature": "Waterloo/Warehouse/{sensor_name}/display_temperature",
+    # "plot_temperature": "Waterloo/Warehouse/{sensor_name}/plot_temperature",
+    # "met_notification_requirements": "Waterloo/Warehouse/{sensor_name}/met_notification_requirements",
+    # "gateway_id": "Waterloo/Warehouse/{sensor_name}/gateway_id",
+    # "data_values": "Waterloo/Warehouse/{sensor_name}/data_values",
+    # "data_types": "Waterloo/Warehouse/{sensor_name}/data_types",
+    # "plot_values": "Waterloo/Warehouse/{sensor_name}/plot_values",
+    # "plot_labels": "Waterloo/Warehouse/{sensor_name}/plot_labels",
+    "individual_Room": "Waterloo/Warehouse/test/",
+    "individual_Freezer":"Waterloo/Warehouse/Freezer/"
+    # "allsensor_data": "Waterloo/Warehouse/allsensor_data" ,
    
 
     
@@ -65,6 +67,37 @@ sensors= {
 
 def on_publish(client, userdata, mid, reason_code, properties):
     print(f"Message published. MID: {mid}, Reason Code: {reason_code}")
+
+
+def publish_individual_sensor_data(client):
+   
+    individual_topics={}
+    for k,v in TOPICS.items():
+        if "individual" in k.lower():
+            individual_topics[k]=v
+   
+
+    for topic_key, topic_template in individual_topics.items():
+
+        target_sensor_name = topic_template.split("/")[-2]
+        if target_sensor_name not in sensors:
+            print(f"Sensor '{target_sensor_name}' not found for topic '{topic_template}'.")
+            continue
+
+        sensor_instance = sensors[target_sensor_name]
+        data = sensor_instance.generate_sensor_data()
+        if data is None:
+            print(f"{target_sensor_name} has shut down.")
+            continue
+
+        # Extract the result  field from the JSON
+        result = json.loads(data).get("Result", [])
+        if result:
+            topic = topic_template
+            payload = json.dumps(result[0])  # Convert the result  field to a JSON string
+            client.publish(topic, payload, qos=1)
+            print(f"Published to {topic}: {payload}")
+
 
 # function name:publish_sensorData(client)
 # Description:This function  is used to publish all the sensor data as based on the topic and the key mapping 
@@ -151,13 +184,42 @@ if __name__ == "__main__":
     client.on_publish = on_publish
     client.connect(host, 8883)
     client.loop_start()
+    # try:
+    #     for i in range(0,1): # test code
+    #         if "individual" in TOPICS:
+    #            publish_individual_sensor_data(client)
+               
+
+    #     #while TOPICS:
+    #         publish_sensorData(client)
+    #         if "allsensor_data" in TOPICS:
+    #            publish_all_sensorData(client)
+    #         time.sleep(3)
     try:
-        #for i in range(1,3): # test code
-        while TOPICS:
-            publish_sensorData(client)
-            if "allsensor_data" in TOPICS:
-               publish_all_sensorData(client)
-            time.sleep(3)
+        for i in range(1):
+        #for i in range(1):
+            # Dynamically handle the topics provided
+           
+            # for topic_key in TOPICS:
+            #     if topic_key == "individual":
+            #         for sensor_name in sensors:
+            #             publish_individual_sensor_data(client, sensor_name)
+            #     elif topic_key == "allsensor_data":
+            #         publish_individual_sensor_data(client)
+            #     else:  
+            #         for sensor_name in sensors:
+            #             publish_sensorData(client, sensor_name, topic_key)
+            # time.sleep(3)
+            for topic_key in TOPICS:
+                if "individual" in topic_key.lower():
+                    publish_individual_sensor_data(client)
+                elif topic_key == "allsensor_data":
+                    publish_all_sensorData(client)
+                else:
+                    publish_sensorData(client)
+
+            time.sleep(3)  # Pause between iterations
+
     except KeyboardInterrupt:
      print("Exiting...")
     finally:
