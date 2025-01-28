@@ -50,7 +50,7 @@ TOPICS={
     "plot_values": "Waterloo/Warehouse/{sensor_name}/plot_values",
     "plot_labels": "Waterloo/Warehouse/{sensor_name}/plot_labels",
     "allsensor_data": "Waterloo/Warehouse/allsensor_data" ,
-   
+    "thermostat": "Waterloo/Warehouse/Thermostat/"
 
     
 }
@@ -140,6 +140,27 @@ def publish_all_sensorData(client):
       print(f"Published all sensor data to {topics}:{payload}")
 
 
+# function name:publish_data(client)
+# Description:This function  is used to publish all the sensor data(maybe in  the future if we add motion sensor then it will include that too)
+# Parameter:void:self
+# return:none
+def publish_data(client):
+   for sensor_name,thermostat_instance in sensors.items():
+      data=thermostat_instance.generate_sensor_data()
+      if data is None:
+         print(f"{sensor_name} has shut down")
+         continue
+
+      final_result=json.loads(data)["Result"][0]
+      sensor_Data={
+         "sensor_name":sensor_name,
+         "data":final_result
+      }
+
+      theTopic=TOPICS["thermostat"] + sensor_name
+      payload=json.dumps(sensor_Data)
+      client.publish(theTopic, payload, qos=1)
+      print(f"Published >> {theTopic}:{payload}")
 
 
 
@@ -154,9 +175,10 @@ if __name__ == "__main__":
     try:
         #for i in range(1,3): # test code
         while TOPICS:
-            publish_sensorData(client)
-            if "allsensor_data" in TOPICS:
-               publish_all_sensorData(client)
+            # publish_sensorData(client)
+            # if "allsensor_data" in TOPICS:
+            #    publish_all_sensorData(client)
+            publish_data(client)
             time.sleep(3)
     except KeyboardInterrupt:
      print("Exiting...")
